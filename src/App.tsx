@@ -25,7 +25,7 @@ const firestore = firebase.firestore();
 const messagesRef = firestore.collection("messages");
 
 export const App = () => {
-  const [value, loading, error] = useCollectionData(
+  const [value] = useCollectionData(
     messagesRef.orderBy("createdAt").limit(100)
   );
 
