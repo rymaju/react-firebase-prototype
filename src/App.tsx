@@ -29,14 +29,17 @@ export const App = () => {
     messagesRef.orderBy("createdAt").limit(100)
   );
 
-  const messages: ChatMessageProps[] =
-    (value &&
-      value.map((m) => ({
-        name: m.name || "Error loading name",
-        src: m.src || "",
-        message: m.message || "Error loading content",
-      }))) ||
-    [];
+  const messages: ChatMessageProps[] = React.useMemo(
+    () =>
+      (value &&
+        value.map((m) => ({
+          name: m.name || "Error loading name",
+          src: m.src || "",
+          message: m.message || "Error loading content",
+        }))) ||
+      [],
+    [value]
+  );
 
   const anchor = React.useRef<HTMLSpanElement>(null);
   React.useEffect(() => {
