@@ -3,6 +3,7 @@ import {
   Button,
   ChakraProvider,
   Container,
+  Link,
   theme,
   VStack,
 } from "@chakra-ui/react";
@@ -66,6 +67,13 @@ export const App = () => {
               Sign in
             </Button>
           )}
+          <Link
+            as={Button}
+            href="https://github.com/rymaju/react-firebase-prototype"
+            bg="none"
+          >
+            Source Code
+          </Link>
           <ColorModeSwitcher />
         </Box>
 
