@@ -1,38 +1,90 @@
-import * as React from "react"
 import {
-  ChakraProvider,
   Box,
-  Text,
-  Link,
-  VStack,
-  Code,
-  Grid,
+  Button,
+  ChakraProvider,
+  Container,
   theme,
-} from "@chakra-ui/react"
-import { ColorModeSwitcher } from "./ColorModeSwitcher"
-import { Logo } from "./Logo"
+  VStack,
+} from "@chakra-ui/react";
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/firestore";
+import * as React from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { useCollectionData } from "react-firebase-hooks/firestore";
+import ChatMessage, { ChatMessageProps } from "./ChatMessage";
+import { ColorModeSwitcher } from "./ColorModeSwitcher";
+import initializeFirebase from "./initializeFirebase";
+import SendMessageBox from "./SendMessageBox";
 
-export const App = () => (
-  <ChakraProvider theme={theme}>
-    <Box textAlign="center" fontSize="xl">
-      <Grid minH="100vh" p={3}>
-        <ColorModeSwitcher justifySelf="flex-end" />
-        <VStack spacing={8}>
-          <Logo h="40vmin" pointerEvents="none" />
-          <Text>
-            Edit <Code fontSize="xl">src/App.tsx</Code> and save to reload.
-          </Text>
-          <Link
-            color="teal.500"
-            href="https://chakra-ui.com"
-            fontSize="2xl"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn Chakra
-          </Link>
-        </VStack>
-      </Grid>
-    </Box>
-  </ChakraProvider>
-)
+initializeFirebase();
+
+const auth = firebase.auth();
+const firestore = firebase.firestore();
+const messagesRef = firestore.collection("messages");
+
+export const App = () => {
+  const [value, loading, error] = useCollectionData(
+    messagesRef.orderBy("createdAt").limit(100)
+  );
+
+  const messages: ChatMessageProps[] =
+    (value &&
+      value.map((m) => ({
+        name: m.name || "Error loading name",
+        src: m.src || "",
+        message: m.message || "Error loading content",
+      }))) ||
+    [];
+
+  const anchor = React.useRef<HTMLSpanElement>(null);
+  React.useEffect(() => {
+    if (anchor && anchor.current) {
+      anchor.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+  const [user] = useAuthState(auth);
+  const isLoggedIn = !!user;
+
+  async function signup() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+  }
+  async function signout() {
+    await auth.signOut();
+  }
+  return (
+    <ChakraProvider theme={theme}>
+      <Box h="100vh" textAlign="center" fontSize="xl">
+        <Box display="flex" justifyContent="flex-end">
+          {isLoggedIn ? (
+            <Button bg="none" onClick={signout}>
+              Sign out
+            </Button>
+          ) : (
+            <Button bg="none" onClick={signup}>
+              Sign in
+            </Button>
+          )}
+          <ColorModeSwitcher />
+        </Box>
+
+        <Container>
+          <Box height="80vh" overflowY="scroll" paddingX="5">
+            <VStack spacing={8}>
+              {messages.map((message, i) => (
+                <ChatMessage key={i} {...message} />
+              ))}
+              <span ref={anchor}></span>
+            </VStack>
+          </Box>
+          <SendMessageBox
+            messages={messages}
+            user={user}
+            isLoggedIn={isLoggedIn}
+          />
+        </Container>
+      </Box>
+    </ChakraProvider>
+  );
+};
