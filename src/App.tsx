@@ -67,12 +67,8 @@ export const App = () => {
               Sign in
             </Button>
           )}
-          <Link
-            as={Button}
-            href="https://github.com/rymaju/react-firebase-prototype"
-            bg="none"
-          >
-            Source Code
+          <Link href="https://github.com/rymaju/react-firebase-prototype">
+            <Button bg="none">Source Code</Button>
           </Link>
           <ColorModeSwitcher />
         </Box>
